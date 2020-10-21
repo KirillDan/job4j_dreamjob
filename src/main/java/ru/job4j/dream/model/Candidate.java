@@ -37,44 +37,23 @@ public class Candidate {
 	public void setPosition(String position) {
 		this.position = position;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Candidate candidate = (Candidate) o;
+		return id == candidate.id &&
+				Objects.equals(firstname, candidate.firstname) &&
+				Objects.equals(lastname, candidate.lastname) &&
+				Objects.equals(position, candidate.position);
+	}
+
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((firstname == null) ? 0 : firstname.hashCode());
-		result = prime * result + id;
-		result = prime * result + ((lastname == null) ? 0 : lastname.hashCode());
-		result = prime * result + ((position == null) ? 0 : position.hashCode());
-		return result;
+		return Objects.hash(id, firstname, lastname, position);
 	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Candidate other = (Candidate) obj;
-		if (firstname == null) {
-			if (other.firstname != null)
-				return false;
-		} else if (!firstname.equals(other.firstname))
-			return false;
-		if (id != other.id)
-			return false;
-		if (lastname == null) {
-			if (other.lastname != null)
-				return false;
-		} else if (!lastname.equals(other.lastname))
-			return false;
-		if (position == null) {
-			if (other.position != null)
-				return false;
-		} else if (!position.equals(other.position))
-			return false;
-		return true;
-	}
+
 	@Override
 	public String toString() {
 		return "Candidate [id=" + id + ", firstname=" + firstname + ", lastname=" + lastname + ", position=" + position
