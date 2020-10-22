@@ -7,14 +7,15 @@ import java.sql.Date;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Store {
 
     private static final Store INST = new Store();
 
     private Map<Integer, Post> posts = new ConcurrentHashMap<>();
-
     private Map<Integer, Candidate> candidates = new ConcurrentHashMap<>();
+    private static AtomicInteger POST_ID = new AtomicInteger(6);
     
     private Store() {
         posts.put(1, new Post(1, "Junior Java Job", "Development of algorithms for processing entities", new Date(120, 7, 5).toString()));
@@ -37,5 +38,10 @@ public class Store {
 
     public Collection<Candidate> findAllCandidates() {
         return candidates.values();
+    }
+    
+    public void save(Post post) {
+        post.setId(POST_ID.incrementAndGet());
+        posts.put(post.getId(), post);
     }
 }
