@@ -28,18 +28,18 @@
                 Создание кандидата.
             </div>
             <div class="card-body">
-                <form>
+                <form action="<%=request.getContextPath()%>/candidate/save" method="post">
                     <div class="form-group">
                         <label>Имя</label>
-                        <input type="text" class="form-control">
+                        <input type="text" class="form-control" name="firstname">
                     </div>
                     <div class="form-group">
                         <label>Фамилия</label>
-                        <input type="text" class="form-control">
+                        <input type="text" class="form-control" name="lastname">
                     </div>
                     <div class="form-group">
                         <label>Должность</label>
-                        <input type="text" class="form-control">
+                        <input type="text" class="form-control" name="position">
                     </div>
                     <button type="submit" class="btn btn-primary">Сохранить</button>
                 </form>
