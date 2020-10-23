@@ -1,3 +1,4 @@
+<%@page import="ru.job4j.dream.model.Candidate"%>
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="ru.job4j.dream.store.Store" %>
 <%@ page import="ru.job4j.dream.model.Post" %>
@@ -21,25 +22,36 @@
     <title>Работа мечты</title>
 </head>
 <body>
+<%
+    String id = request.getParameter("id");
+    Candidate candidate = new Candidate(0, "", "", "");
+    if (id != null) {
+    	candidate = Store.instOf().findByIdCandidate(Integer.valueOf(id));
+    }
+%>
 <div class="container pt-3">
     <div class="row">
         <div class="card" style="width: 100%">
             <div class="card-header">
-                Создание кандидата.
+                <% if (id == null) { %>
+                    Новая вакансия.
+                <% } else { %>
+                    Редактирование вакансии.
+                <% } %>
             </div>
             <div class="card-body">
-                <form action="<%=request.getContextPath()%>/candidate/save" method="post">
+                <form action="<%=request.getContextPath()%>/candidate/save?id=<%=candidate.getId()%>" method="post">
                     <div class="form-group">
                         <label>Имя</label>
-                        <input type="text" class="form-control" name="firstname">
+                        <input type="text" class="form-control" name="firstname" value="<%=candidate.getFirstname()%>">
                     </div>
                     <div class="form-group">
                         <label>Фамилия</label>
-                        <input type="text" class="form-control" name="lastname">
+                        <input type="text" class="form-control" name="lastname"  value="<%=candidate.getLastname()%>">
                     </div>
                     <div class="form-group">
                         <label>Должность</label>
-                        <input type="text" class="form-control" name="position">
+                        <input type="text" class="form-control" name="position" value="<%=candidate.getPosition()%>">
                     </div>
                     <button type="submit" class="btn btn-primary">Сохранить</button>
                 </form>
