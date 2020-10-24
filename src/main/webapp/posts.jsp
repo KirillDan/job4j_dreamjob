@@ -1,6 +1,5 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ page import="ru.job4j.dream.store.Store" %>
-<%@ page import="ru.job4j.dream.model.Post" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core" %>
 <!doctype html>
 <html lang="en">
 <head>
@@ -22,7 +21,6 @@
 </head>
 <body>
 <div class="container pt-3">
-
     <div class="row">
         <div class="card" style="width: 100%">
             <div class="card-header">
@@ -39,21 +37,21 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% for (Post post : (Iterable<Post>) request.getAttribute("posts")) { %>
+                    <c:forEach items="${posts}" var="post">
                     <tr>
                     	<td>
-                    		<%= post.getId() %>
+                    		<c:out value="${post.id}"/>
                     	</td>
                         <td>
-                        	<a href="<%=request.getContextPath()%>/post/edit.jsp?id=<%=post.getId()%>">
+                        	<a href='<c:url value="/post/edit.jsp?id=${post.id}"/>'>
             					<i class="fa fa-edit mr-3"></i>
         					</a>
-                        	<%= post.getName() %>
+                        	<c:out value="${post.name}"/>
                         </td>
-                        <td><%= post.getDescription() %></td>
-                        <td><%= post.getCreated() %></td>
+                        <td><c:out value="${post.description}"/></td>
+                        <td><c:out value="${post.created}"/></td>
                     </tr>
-                    <% } %>
+                    </c:forEach>
                     </tbody>
                 </table>
             </div>
