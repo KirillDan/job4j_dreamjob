@@ -39,7 +39,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% for (Candidate can : Store.instOf().findAllCandidates()) { %>
+                    <% for (Candidate can : (Iterable<Candidate>) request.getAttribute("candidates")) { %>
                     <tr>
                         <td><%= can.getId() %></td>
                         <td>

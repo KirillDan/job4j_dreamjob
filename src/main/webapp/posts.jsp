@@ -39,7 +39,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% for (Post post : Store.instOf().findAllPosts()) { %>
+                    <% for (Post post : (Iterable<Post>) request.getAttribute("posts")) { %>
                     <tr>
                     	<td>
                     		<%= post.getId() %>
