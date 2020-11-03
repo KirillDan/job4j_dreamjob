@@ -3,12 +3,12 @@ package ru.job4j.dream.model;
 import java.util.Objects;
 
 public class Post {
-    private Integer id;
-    private String name;
-    private String description;
-    private String created;
+	private Integer id;
+	private String name;
+	private String description;
+	private String created;
 
-    public Post(Integer id, String name, String description, String created) {
+	public Post(Integer id, String name, String description, String created) {
 		this.id = id;
 		this.name = name;
 		this.description = description;
@@ -54,13 +54,13 @@ public class Post {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 		Post post = (Post) o;
-		return id == post.id &&
-				Objects.equals(name, post.name) &&
-				Objects.equals(description, post.description) &&
-				Objects.equals(created, post.created);
+		return id == post.id && Objects.equals(name, post.name) && Objects.equals(description, post.description)
+				&& Objects.equals(created, post.created);
 	}
 
 	@Override
