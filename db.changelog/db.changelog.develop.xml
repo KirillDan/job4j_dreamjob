@@ -9,4 +9,5 @@
 
     <include file="/db.changelog/db.changelog.candidate.xml"></include>
     <include file="/db.changelog/db.changelog.post.xml"></include>
+    <include file="/db.changelog/db.changelog.phote.xml"></include>
 </databaseChangeLog>

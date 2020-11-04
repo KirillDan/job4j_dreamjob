@@ -32,15 +32,23 @@
                     <thead>
                     <tr>
                         <th scope="col">Id</th>
+                        <th scope="col">Фото</th>
                         <th scope="col">Имя</th>
                         <th scope="col">Фамилия</th>
                         <th scope="col">Должность</th>
+                        <th scope="col"></th>
                     </tr>
                     </thead>
                     <tbody>
                     <c:forEach items="${candidates}" var="can">
                     <tr>
                         <td><c:out value="${can.id}"/></td>
+                       	<td>
+                       	<a href='<c:url value="/downloadPhoto?photoId=${can.photoId}"/>'>
+                       	<img src='<c:url value="/downloadPhoto?photoId=${can.photoId}"/>'
+								width="100px" height="100px" />
+						</a>
+						</td>
                         <td>
                         	<a href='<c:url value="/candidate/edit.jsp?id=${can.id}"/>'>
             					<i class="fa fa-edit mr-3"></i>
@@ -49,6 +57,7 @@
                         </td>
                         <td><c:out value="${can.lastname}"/></td>
                         <td><c:out value="${can.position}"/></td>
+                        <td><a href='<c:url value="/deleteCandidate?id=${can.id}"/>'>удалить</a></td>
                     </tr>
                     </c:forEach>
                     </tbody>

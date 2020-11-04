@@ -7,12 +7,14 @@ public class Candidate {
 	private String firstname;
 	private String lastname;
 	private String position;
+	private Integer photoId;
 
 	public Candidate(int id, String firstname, String lastname, String position) {
 		this.id = id;
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.position = position;
+		this.photoId = null;
 	}
 
 	public int getId() {
@@ -45,6 +47,14 @@ public class Candidate {
 
 	public void setPosition(String position) {
 		this.position = position;
+	}
+	
+	public Integer getPhotoId() {
+		return photoId;
+	}
+
+	public void setPhotoId(Integer photoId) {
+		this.photoId = photoId;
 	}
 
 	@Override

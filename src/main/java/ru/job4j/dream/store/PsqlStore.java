@@ -1,11 +1,16 @@
 package ru.job4j.dream.store;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.fileupload.FileItem;
+
 import ru.job4j.dream.model.Candidate;
 import ru.job4j.dream.model.Post;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +40,14 @@ public class PsqlStore implements Store {
 	private static final String SQL_FIND_BY_ID_CANDIDATE = "SELECT * FROM candidate WHERE id = ?";
 	private static final String SQL_UPDATE_BY_ID_CANDIDATE = "UPDATE candidate SET firstname = ?, lastname = ?, position = ? WHERE id = ?";
 	private static final String SQL_SELECT_ALL_CANDIDATE = "SELECT * FROM candidate";
-
+	private static final String SQL_DELETE_BY_ID_CANDIDATE = "DELETE FROM candidate WHERE id = ?";
+	
+	private static final String SQL_DROP_PHOTO = "DROP TABLE IF EXISTS phote";
+	private static final String SQL_CREATE_PHOTO = "CREATE TABLE phote (id SERIAL PRIMARY KEY, candidate_id SERIAL, FOREIGN KEY (candidate_id) REFERENCES candidate(id))";
+	private static final String SQL_INSERT_PHOTO = "INSERT INTO phote(candidate_id) VALUES (?)";
+	private static final String SQL_FIND_BY_ID_PHOTO = "SELECT * FROM phote WHERE candidate_id = ?";
+	private static final String SQL_DELETE_BY_CANDIDATE_ID_PHOTO = "DELETE FROM phote WHERE candidate_id = ?";
+	
 	private final BasicDataSource pool = new BasicDataSource();
 
 	private PsqlStore() {
@@ -58,8 +70,9 @@ public class PsqlStore implements Store {
 		pool.setMinIdle(5);
 		pool.setMaxIdle(10);
 		pool.setMaxOpenPreparedStatements(100);
-		this.createTablePost();
-		this.createTableCandidates();
+//		this.createTablePost();
+//		this.createTableCandidates();
+//		this.createTablePhoto();
 	}
 
 	private static final class Lazy {
@@ -89,6 +102,16 @@ public class PsqlStore implements Store {
 			logger.error(e.getMessage());
 		}
 	}
+	
+	private void createTablePhoto() {
+		try (Connection connection = this.pool.getConnection()) {
+			Statement statement = connection.createStatement();
+			statement.executeUpdate(SQL_DROP_PHOTO);
+			statement.executeUpdate(SQL_CREATE_PHOTO);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+	}
 
 	@Override
 	public Collection<Post> findAllPosts() {
@@ -109,11 +132,21 @@ public class PsqlStore implements Store {
 	@Override
 	public Collection<Candidate> findAllCandidates() {
 		List<Candidate> candidates = new ArrayList<>();
-		try (Connection cn = pool.getConnection(); Statement ps = cn.createStatement();) {
-			try (ResultSet it = ps.executeQuery(SQL_SELECT_ALL_CANDIDATE)) {
+		try (Connection cn = pool.getConnection(); Statement st = cn.createStatement()) {
+			try (ResultSet it = st.executeQuery(SQL_SELECT_ALL_CANDIDATE)) {
 				while (it.next()) {
-					candidates.add(new Candidate(it.getInt("id"), it.getString("firstname"), it.getString("lastname"),
-							it.getString("position")));
+					Candidate candidate = new Candidate(it.getInt("id"), it.getString("firstname"), it.getString("lastname"),
+							it.getString("position"));
+					try (PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_ID_PHOTO);){
+						ps.setInt(1, it.getInt("id"));
+						ps.execute();
+						try(ResultSet itp = ps.getResultSet()) {
+							if(itp.next()) {
+								candidate.setPhotoId(itp.getInt("id"));
+							}
+						}
+					}
+					candidates.add(candidate);
 				}
 			}
 		} catch (Exception e) {
@@ -137,6 +170,13 @@ public class PsqlStore implements Store {
 			create(candidate);
 		} else {
 			update(candidate);
+		}
+	}
+	
+	@Override
+	public void save(int candidateId, List<FileItem> items) {
+		if (candidateId != 0) {
+			create(candidateId, items);
 		}
 	}
 
@@ -175,6 +215,41 @@ public class PsqlStore implements Store {
 			logger.error(e.getMessage());
 		}
 		return candidate;
+	}
+	
+	private Integer create(int candidateId, List<FileItem> items) {
+		Integer dbId = null;
+		try (Connection cn = pool.getConnection();
+				PreparedStatement ps = cn.prepareStatement(SQL_INSERT_PHOTO,
+						PreparedStatement.RETURN_GENERATED_KEYS)) {
+			ps.setInt(1, candidateId);
+			ps.execute();
+			try (ResultSet id = ps.getGeneratedKeys()) {
+				if (id.next()) {
+					dbId = id.getInt("id");
+					savePhoto(items, dbId);
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return dbId;
+	}
+	
+	private void savePhoto(List<FileItem> items, int photoId) throws IOException {
+		File folder = new File("bin" + File.separator + "images" + File.separator + "phote_id");
+		if (!folder.exists()) {
+			folder.mkdirs();
+		}
+		for (FileItem item : items) {
+			if (!item.isFormField()) {
+				File file = new File(folder + File.separator + photoId);
+				try (FileOutputStream out = new FileOutputStream(file)) {
+					out.write(item.getInputStream().readAllBytes());
+				}
+				break;
+			}
+		}
 	}
 
 	private void update(Post post) {
@@ -235,4 +310,49 @@ public class PsqlStore implements Store {
 		}
 		return candidate;
 	}
+	
+	@Override
+	public File findByIdPhoto(int candidateId) {
+		File file = null;
+		try (Connection cn = pool.getConnection(); PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_ID_CANDIDATE);) {
+			ps.setInt(1, candidateId);
+			ps.execute();
+			try(ResultSet resultSet = ps.getResultSet()) {
+				if (resultSet.next()) {
+					int photoId = resultSet.getInt("id");
+					file = new File("bin" + File.separator + "images" + File.separator + "phote_id" + File.separator + photoId);
+				}
+			}
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+		return file;
+	}
+
+	@Override
+	public void deleteCandidate(Integer candidateId) {
+		try (Connection cn = pool.getConnection(); 
+				PreparedStatement pssp = cn.prepareStatement(SQL_FIND_BY_ID_PHOTO);
+				PreparedStatement psdc = cn.prepareStatement(SQL_DELETE_BY_ID_CANDIDATE);
+				PreparedStatement psdp = cn.prepareStatement(SQL_DELETE_BY_CANDIDATE_ID_PHOTO);) {
+			pssp.setInt(1, candidateId);
+			pssp.execute();
+			try (ResultSet resultSet = pssp.getResultSet()) {
+				while (resultSet.next()) {
+					int photoId = resultSet.getInt("id");
+					File file = new File("bin" + File.separator + "images" + File.separator + "phote_id" + File.separator + photoId);
+					file.delete();
+				}
+			}
+			psdp.setInt(1,candidateId);
+			psdp.executeUpdate();
+			psdc.setInt(1,candidateId);
+			psdc.executeUpdate();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+		
+	}
+	
+	
 }
