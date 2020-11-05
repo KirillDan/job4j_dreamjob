@@ -29,7 +29,7 @@
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-
+	
 	<div class="container">
 		<table class="table">
 			<thead>
@@ -39,25 +39,25 @@
 				</tr>
 			</thead>
 			<tbody>
-					<c:forEach items="${images}" var="image" varStatus="status">
-						<tr valign="top">
+				<c:forEach items="${images}" var="image" varStatus="status">
+					<tr valign="top">
 						<!-- <a href='<c:url value="/post/edit.jsp?id=${post.id}"/>'> -->
-							<td><a href='<c:url value="/download?name=${image}"/>'>Download</a></td>
-							<td><img src='<c:url value="/download?name=${image}"/>'
-								width="100px" height="100px" /></td>
-						</tr>
-					</c:forEach>
+						<td><a href='<c:url value="/download?name=${image}"/>'>Download</a></td>
+						<td><img src='<c:url value="/download?name=${image}"/>'
+							width="100px" height="100px" /></td>
+					</tr>
+				</c:forEach>
 			</tbody>
 		</table>
 		<h2>Upload image</h2>
-		<form
-			action='<c:url value="/upload"/>' method="post" enctype="multipart/form-data">
-        <div class="checkbox">
-            <input type="file" name="file">
-        </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-    </form>
-</div>
+		<form action='<c:url value="/upload"/>' method="post"
+			enctype="multipart/form-data">
+			<div class="checkbox">
+				<input type="file" name="file">
+			</div>
+			<button type="submit" class="btn btn-default">Submit</button>
+		</form>
+	</div>
 
 </body>
 </html>
