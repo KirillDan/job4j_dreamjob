@@ -5,6 +5,7 @@ import org.apache.commons.fileupload.FileItem;
 
 import ru.job4j.dream.model.Candidate;
 import ru.job4j.dream.model.Post;
+import ru.job4j.dream.model.User;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,6 +48,11 @@ public class PsqlStore implements Store {
 	private static final String SQL_INSERT_PHOTO = "INSERT INTO phote(candidate_id) VALUES (?)";
 	private static final String SQL_FIND_BY_ID_PHOTO = "SELECT * FROM phote WHERE candidate_id = ?";
 	private static final String SQL_DELETE_BY_CANDIDATE_ID_PHOTO = "DELETE FROM phote WHERE candidate_id = ?";
+	
+	private static final String SQL_INSERT_USER = "INSERT INTO user(name, email, password) VALUES (?, ?, ?)";
+	private static final String SQL_FIND_BY_ID_USER = "SELECT * FROM user WHERE id = ?";
+	private static final String SQL_UPDATE_BY_ID_USER = "UPDATE user SET name = ?, email = ?, password = ? WHERE id = ?";
+	private static final String SQL_DELETE_BY_ID_USER = "DELETE FROM user WHERE id = ?";
 	
 	private final BasicDataSource pool = new BasicDataSource();
 
@@ -180,6 +186,15 @@ public class PsqlStore implements Store {
 		}
 	}
 
+	@Override
+	public void save(User user) {
+		if (user.getId() == 0) {
+			create(user);
+		} else {
+			update(user);
+		}
+	}
+
 	private Post create(Post post) {
 		try (Connection cn = pool.getConnection();
 				PreparedStatement ps = cn.prepareStatement(SQL_INSERT_POST, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -196,6 +211,23 @@ public class PsqlStore implements Store {
 			logger.error(e.getMessage());
 		}
 		return post;
+	}
+	
+	private User create(User user) {
+		try (Connection cn = pool.getConnection();
+				PreparedStatement ps = cn.prepareStatement(SQL_INSERT_USER, PreparedStatement.RETURN_GENERATED_KEYS)) {
+			ps.setString(1, user.getName());
+			ps.setString(2, user.getEmail());
+			ps.setString(3, user.getPassword());
+			try (ResultSet id = ps.getGeneratedKeys()) {
+				if (id.next()) {
+					user.setId(id.getInt("id"));
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return user;
 	}
 
 	private Candidate create(Candidate candidate) {
@@ -275,6 +307,19 @@ public class PsqlStore implements Store {
 			logger.error(e.getMessage());
 		}
 	}
+	
+	private void update(User user) {
+		try (Connection cn = pool.getConnection();
+				PreparedStatement ps = cn.prepareStatement(SQL_UPDATE_BY_ID_USER);) {
+			ps.setString(1, user.getName());
+			ps.setString(2, user.getEmail());
+			ps.setString(3, user.getPassword());
+			ps.setInt(4, user.getId());
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+	}
 
 	@Override
 	public Post findById(int id) {
@@ -311,6 +356,24 @@ public class PsqlStore implements Store {
 		return candidate;
 	}
 	
+	@Override
+	public User findByIdUser(int id) {
+		User user = null;
+		try (Connection cn = pool.getConnection();
+				PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_ID_USER);) {
+			ps.setInt(1, id);
+			ps.execute();
+			ResultSet resultSet = ps.getResultSet();
+			if (resultSet.next()) {
+				user = new User(resultSet.getInt("id"), resultSet.getString("name"),
+						resultSet.getString("email"), resultSet.getString("password"));
+			}
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+		return user;
+	}
+
 	@Override
 	public File findByIdPhoto(int candidateId) {
 		File file = null;
@@ -351,8 +414,16 @@ public class PsqlStore implements Store {
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
 		}
-		
 	}
-	
-	
+
+	@Override
+	public void deleteUser(Integer userId) {
+		try (Connection cn = pool.getConnection(); 
+				PreparedStatement ps = cn.prepareStatement(SQL_DELETE_BY_ID_USER);) {
+			ps.setInt(1, userId);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+	}
 }

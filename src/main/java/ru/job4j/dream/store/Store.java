@@ -2,6 +2,7 @@ package ru.job4j.dream.store;
 
 import ru.job4j.dream.model.Candidate;
 import ru.job4j.dream.model.Post;
+import ru.job4j.dream.model.User;
 
 import java.io.File;
 import java.util.Collection;
@@ -18,7 +19,11 @@ public interface Store {
     
     void save(Candidate candidate);
     
+    void save(User user);
+    
     void deleteCandidate(Integer candidateId);
+    
+    void deleteUser(Integer userId);
     
     void save(int candidateId, List<FileItem> items);
 
@@ -27,4 +32,6 @@ public interface Store {
     Candidate findByIdCandidate(int id);
     
     File findByIdPhoto(int id);
+    
+    User findByIdUser(int id);
 }

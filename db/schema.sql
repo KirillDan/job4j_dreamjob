@@ -17,3 +17,10 @@ CREATE TABLE phote (
 	candidate_id SERIAL,
 	FOREIGN KEY (candidate_id) REFERENCES candidate (id)
 );
+
+CREATE TABLE user (
+	id SERIAL PRIMARY KEY,
+	name TEXT,
+	email TEXT,
+	password TEXT
+);
