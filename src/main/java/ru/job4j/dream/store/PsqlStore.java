@@ -49,10 +49,13 @@ public class PsqlStore implements Store {
 	private static final String SQL_FIND_BY_ID_PHOTO = "SELECT * FROM phote WHERE candidate_id = ?";
 	private static final String SQL_DELETE_BY_CANDIDATE_ID_PHOTO = "DELETE FROM phote WHERE candidate_id = ?";
 	
-	private static final String SQL_INSERT_USER = "INSERT INTO user(name, email, password) VALUES (?, ?, ?)";
-	private static final String SQL_FIND_BY_ID_USER = "SELECT * FROM user WHERE id = ?";
-	private static final String SQL_UPDATE_BY_ID_USER = "UPDATE user SET name = ?, email = ?, password = ? WHERE id = ?";
-	private static final String SQL_DELETE_BY_ID_USER = "DELETE FROM user WHERE id = ?";
+	private static final String SQL_DROP_USER = "DROP TABLE IF EXISTS users";
+	private static final String SQL_CREATE_USER = "CREATE TABLE users(id SERIAL PRIMARY KEY, name TEXT, email TEXT, password TEXT)";
+	private static final String SQL_INSERT_USER = "INSERT INTO users(name, email, password) VALUES (?, ?, ?)";
+	private static final String SQL_FIND_BY_ID_USER = "SELECT * FROM users WHERE id = ?";
+	private static final String SQL_FIND_BY_EMAIL_USER = "SELECT * FROM users WHERE email = ?";
+	private static final String SQL_UPDATE_BY_ID_USER = "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?";
+	private static final String SQL_DELETE_BY_ID_USER = "DELETE FROM users WHERE id = ?";
 	
 	private final BasicDataSource pool = new BasicDataSource();
 
@@ -79,6 +82,7 @@ public class PsqlStore implements Store {
 //		this.createTablePost();
 //		this.createTableCandidates();
 //		this.createTablePhoto();
+//		this.createTableUser();
 	}
 
 	private static final class Lazy {
@@ -95,7 +99,7 @@ public class PsqlStore implements Store {
 			statement.executeUpdate(SQL_DROP_POST);
 			statement.executeUpdate(SQL_CREATE_POST);
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось пересоздать таблицу post", e);
 		}
 	}
 
@@ -105,7 +109,7 @@ public class PsqlStore implements Store {
 			statement.executeUpdate(SQL_DROP_CANDIDATE);
 			statement.executeUpdate(SQL_CREATE_CANDIDATE);
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось пересоздать таблицу candidates", e);
 		}
 	}
 	
@@ -115,10 +119,20 @@ public class PsqlStore implements Store {
 			statement.executeUpdate(SQL_DROP_PHOTO);
 			statement.executeUpdate(SQL_CREATE_PHOTO);
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось пересоздать таблицу photo", e);
 		}
 	}
 
+	private void createTableUser() {
+		try (Connection connection = this.pool.getConnection()) {
+			Statement statement = connection.createStatement();
+			statement.executeUpdate(SQL_DROP_USER);
+			statement.executeUpdate(SQL_CREATE_USER);
+		} catch (SQLException e) {
+			logger.error("Не удалось пересоздать таблицу user", e);
+		}
+	}
+	
 	@Override
 	public Collection<Post> findAllPosts() {
 		List<Post> posts = new ArrayList<>();
@@ -129,8 +143,8 @@ public class PsqlStore implements Store {
 							it.getString("created")));
 				}
 			}
-		} catch (Exception e) {
-			logger.error(e.getMessage());
+		} catch (SQLException e) {
+			logger.error("Не удалось найти все строки таблицы post", e);
 		}
 		return posts;
 	}
@@ -156,7 +170,7 @@ public class PsqlStore implements Store {
 				}
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось найти все строки таблицы candidate", e);
 		}
 		return candidates;
 	}
@@ -208,7 +222,7 @@ public class PsqlStore implements Store {
 				}
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось добавить строку в таблицу post", e);
 		}
 		return post;
 	}
@@ -219,13 +233,14 @@ public class PsqlStore implements Store {
 			ps.setString(1, user.getName());
 			ps.setString(2, user.getEmail());
 			ps.setString(3, user.getPassword());
+			ps.execute();
 			try (ResultSet id = ps.getGeneratedKeys()) {
 				if (id.next()) {
 					user.setId(id.getInt("id"));
 				}
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось добавить строку в таблицу users", e);
 		}
 		return user;
 	}
@@ -244,7 +259,7 @@ public class PsqlStore implements Store {
 				}
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось добавить строку в таблицу candidate", e);
 		}
 		return candidate;
 	}
@@ -261,9 +276,11 @@ public class PsqlStore implements Store {
 					dbId = id.getInt("id");
 					savePhoto(items, dbId);
 				}
+			} catch (IOException e) {
+				logger.error("Не удалось сохранить фото в файловой системе", e);
 			}
-		} catch (Exception e) {
-			logger.error(e.getMessage());
+		} catch (SQLException e) {
+			logger.error("Не удалось добавить строку в таблицу photo", e);
 		}
 		return dbId;
 	}
@@ -291,7 +308,7 @@ public class PsqlStore implements Store {
 			ps.setInt(3, post.getId());
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось обновить строку в таблице post", e);
 		}
 	}
 
@@ -304,7 +321,7 @@ public class PsqlStore implements Store {
 			ps.setInt(4, candidate.getId());
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось обновить строку в таблице candidate", e);
 		}
 	}
 	
@@ -317,7 +334,7 @@ public class PsqlStore implements Store {
 			ps.setInt(4, user.getId());
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось обновить строку в таблице users", e);
 		}
 	}
 
@@ -333,7 +350,7 @@ public class PsqlStore implements Store {
 						resultSet.getString("description"), resultSet.getString("created"));
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось найти строку в таблице post", e);
 		}
 		return post;
 	}
@@ -342,7 +359,7 @@ public class PsqlStore implements Store {
 	public Candidate findByIdCandidate(int id) {
 		Candidate candidate = null;
 		try (Connection cn = pool.getConnection();
-				PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_ID_CANDIDATE);) {
+				PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_ID_CANDIDATE)) {
 			ps.setInt(1, id);
 			ps.execute();
 			ResultSet resultSet = ps.getResultSet();
@@ -351,7 +368,7 @@ public class PsqlStore implements Store {
 						resultSet.getString("lastname"), resultSet.getString("position"));
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось найти строку в таблице candidate", e);
 		}
 		return candidate;
 	}
@@ -360,7 +377,7 @@ public class PsqlStore implements Store {
 	public User findByIdUser(int id) {
 		User user = null;
 		try (Connection cn = pool.getConnection();
-				PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_ID_USER);) {
+				PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_ID_USER)) {
 			ps.setInt(1, id);
 			ps.execute();
 			ResultSet resultSet = ps.getResultSet();
@@ -369,7 +386,25 @@ public class PsqlStore implements Store {
 						resultSet.getString("email"), resultSet.getString("password"));
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось найти строку в таблице users", e);
+		}
+		return user;
+	}
+
+	@Override
+	public User findByEmail(String userEmail) {
+		User user = null;
+		try (Connection cn = pool.getConnection();
+				PreparedStatement ps = cn.prepareStatement(SQL_FIND_BY_EMAIL_USER);) {
+			ps.setString(1, userEmail);
+			ps.execute();
+			ResultSet resultSet = ps.getResultSet();
+			if (resultSet.next()) {
+				user = new User(resultSet.getInt("id"), resultSet.getString("name"),
+						resultSet.getString("email"), resultSet.getString("password"));
+			}
+		} catch (SQLException e) {
+			logger.error("Не удалось найти строку в таблице users по email", e);
 		}
 		return user;
 	}
@@ -387,7 +422,7 @@ public class PsqlStore implements Store {
 				}
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось найти строку в таблице photo", e);
 		}
 		return file;
 	}
@@ -412,7 +447,7 @@ public class PsqlStore implements Store {
 			psdc.setInt(1,candidateId);
 			psdc.executeUpdate();
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось удалить строку в таблице candidate", e);
 		}
 	}
 
@@ -423,7 +458,7 @@ public class PsqlStore implements Store {
 			ps.setInt(1, userId);
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			logger.error("Не удалось удалить строку в таблице users", e);
 		}
 	}
 }

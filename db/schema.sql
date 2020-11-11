@@ -18,7 +18,7 @@ CREATE TABLE phote (
 	FOREIGN KEY (candidate_id) REFERENCES candidate (id)
 );
 
-CREATE TABLE user (
+CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
 	name TEXT,
 	email TEXT,

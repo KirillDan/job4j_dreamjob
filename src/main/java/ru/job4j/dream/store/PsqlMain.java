@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import ru.job4j.dream.model.Candidate;
 import ru.job4j.dream.model.Post;
+import ru.job4j.dream.model.User;
 
 public class PsqlMain {
 	public static void main(String[] args) {

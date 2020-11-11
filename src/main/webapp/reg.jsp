@@ -33,14 +33,18 @@
 		<div class="row">
 			<ul class="nav">
 				<li class="nav-item"><a class="nav-link"
-					href="<%=request.getContextPath()%>/reg.do">Регистрация</a></li>
+					href="<%=request.getContextPath()%>/auth.do">Авторизация</a></li>
 			</ul>
 		</div>
 		<div class="row">
 			<div class="card" style="width: 100%">
-				<div class="card-header">Авторизация</div>
+				<div class="card-header">Регистрация</div>
 				<div class="card-body">
-					<form action="<%=request.getContextPath()%>/auth.do" method="post">
+					<form action="<%=request.getContextPath()%>/reg.do" method="post">
+						<div class="form-group">
+							<label>Имя</label> <input type="text" class="form-control"
+								name="name">
+						</div>
 						<div class="form-group">
 							<label>Почта</label> <input type="text" class="form-control"
 								name="email">

@@ -34,4 +34,6 @@ public interface Store {
     File findByIdPhoto(int id);
     
     User findByIdUser(int id);
+    
+    User findByEmail(String userEmail);
 }
