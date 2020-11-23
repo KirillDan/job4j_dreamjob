@@ -16,7 +16,8 @@ public class GreetingServlet extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Origin", "*");
         String name = req.getParameter("name");
         PrintWriter writer = new PrintWriter(resp.getOutputStream());
-        writer.println(name);
+        String json = "{\"name\":\"" + name + "\"}";
+        writer.println(json);
         writer.flush();
     }
 }
